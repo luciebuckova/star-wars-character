@@ -1,95 +1,114 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+'use client';
+import { useState, useEffect } from 'react';
+import { getPeople, Person, API_URL } from './services/apiStarWars';
+import SearchBar from './components/searchBar';
+import { useSearchParams, useRouter } from 'next/navigation';
+import Card from './components/card';
 
 export default function Home() {
+  const searchParams = useSearchParams();
+  const query = searchParams.get('query') || '';
+  const [people, setPeople] = useState<Person[]>([]);
+  const [page, setPage] = useState<number>(1);
+  const [nextPage, setNextPage] = useState<string | null>(null);
+  const [previousPage, setPreviousPage] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    const loadPeople = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const data = await getPeople(`${API_URL}/people`, query);
+        setPeople(data.results);
+        setNextPage(data.next);
+        setPreviousPage(data.previous);
+        setPage(1); // Reset page number on new search
+      } catch (err) {
+        if (err instanceof Error) {
+          setError(err.message);
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadPeople();
+  }, [query]);
+
+  const loadNext = async () => {
+    if (!nextPage) return;
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const data = await getPeople(nextPage);
+      setPeople(data.results);
+      setNextPage(data.next);
+      setPreviousPage(data.previous);
+      setPage((prevPage) => prevPage + 1);
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadPrevious = async () => {
+    if (!previousPage) return;
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const data = await getPeople(previousPage);
+      setPeople(data.results);
+      setNextPage(data.next);
+      setPreviousPage(data.previous);
+      setPage((prevPage) => prevPage - 1);
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>src/app/page.tsx</code>
-        </p>
+    <main>
+      <h1>Star Wars character app 🪐</h1>
+      {error && <p>Error: {error}</p>}
+      <SearchBar placeholder="Search character..." />
+      <ul>
+        {people.map((person, index) => (
+          <Card
+            key={index}
+            name={person.name}
+            url={person.url}
+            species={person.species}
+          />
+        ))}
+      </ul>
+      {loading && <p>Loading...</p>}
+
+      {!query && !loading && (
         <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
+          <button onClick={loadPrevious} disabled={!previousPage}>
+            Previous
+          </button>
+          <span>Page {page}</span>
+          <button onClick={loadNext} disabled={!nextPage}>
+            Next
+          </button>
         </div>
-      </div>
-
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className={styles.grid}>
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p>Find in-depth information about Next.js features and API.</p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Learn <span>-&gt;</span>
-          </h2>
-          <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p>Explore starter templates for Next.js.</p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
+      )}
     </main>
   );
 }
