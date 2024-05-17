@@ -4,6 +4,19 @@ export interface Person {
   name: string;
   species: string[];
   url: string;
+  height: string;
+  mass: string;
+  created: string;
+  films: string[];
+  birth_year: string;
+  homeworld: string;
+}
+
+export interface Homeworld {
+  name: string;
+  terrain: string;
+  climate: string;
+  residents: string[];
 }
 
 export interface PeopleResponse {
@@ -28,10 +41,18 @@ export async function getPeople(
   return data;
 }
 
-export async function getPerson(personNumber: number) {
+export async function getPerson(personNumber: number): Promise<Person> {
   const res = await fetch(`${API_URL}/people/${personNumber}`);
   if (!res.ok) throw new Error('Failed getting person');
-  const data = await res.json();
-  console.log(data);
+
+  const data: Person = await res.json();
+  return data;
+}
+
+export async function getHomeworld(homeworld: string): Promise<Homeworld> {
+  const res = await fetch(`${homeworld}`);
+  if (!res.ok) throw new Error('Failed getting homeworld');
+
+  const data: Homeworld = await res.json();
   return data;
 }
