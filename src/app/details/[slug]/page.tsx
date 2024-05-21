@@ -17,8 +17,8 @@ export default async function Detail({ params }: { params: { slug: string } }) {
       <h3 className="mb-2 mt-4 text-lg font-medium">{home.name}</h3>
       <p>Terrain: {home.terrain}</p>
       <p>Climate: {home.climate}</p>
-      <p className="mb-4">Amount of residents: {home.residents.length}</p>
-      <Button url="/">Back</Button>
+      <p className="mb-8">Amount of residents: {home.residents.length}</p>
+      <Button to="/">Back</Button>
     </main>
   );
 }

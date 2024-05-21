@@ -1,11 +1,13 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { getPeople, Person, API_URL } from "./services/apiStarWars";
 import SearchBar from "./components/searchBar";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Card from "./components/card";
+import Button from "./components/button";
+import Loader from "./components/loader";
 
-export default function Home() {
+function Content() {
   const searchParams = useSearchParams();
   const query = searchParams.get("query") || "";
   const [people, setPeople] = useState<Person[]>([]);
@@ -14,7 +16,6 @@ export default function Home() {
   const [previousPage, setPreviousPage] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
 
   useEffect(() => {
     const loadPeople = async () => {
@@ -82,39 +83,47 @@ export default function Home() {
   };
 
   return (
-    <>
-      <main>
-        {error && <p>Error: {error}</p>}
-        <SearchBar placeholder="Search character..." />
-        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-          {people.map((person, index) => (
-            <Card
-              key={index}
-              name={person.name}
-              url={person.url}
-              species={person.species}
-            />
-          ))}
-        </ul>
-        {loading && <p>Loading...</p>}
-      </main>
-      <footer className="mt-8">
-        {!query && !loading && (
-          <div className="flex items-center justify-start gap-4">
-            <button
-              onClick={loadPrevious}
-              disabled={!previousPage}
-              className="text-xl"
-            >
-              ⬅️
-            </button>
-            <span>Page {page}</span>
-            <button onClick={loadNext} disabled={!nextPage} className="text-xl">
-              ➡️
-            </button>
+    <main>
+      {error && <p>Error: {error}</p>}
+      <SearchBar placeholder="Search character..." />
+      <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+        {people.map((person, index) => (
+          <Card
+            key={index}
+            name={person.name}
+            url={person.url}
+            species={person.species}
+          />
+        ))}
+      </ul>
+      {loading && <Loader />}
+      <footer className="mt-16">
+        {!loading && (
+          <div className="mx-auto flex w-full items-center justify-center gap-4 sm:w-1/2 md:w-1/3">
+            <div className="flex basis-1/3 justify-center">
+              <Button onClick={loadPrevious} disabled={!previousPage}>
+                ←
+              </Button>
+            </div>
+            <div className="basis-1/3 text-center">
+              <span>Page {page}</span>
+            </div>
+            <div className="flex basis-1/3 justify-center">
+              <Button onClick={loadNext} disabled={!nextPage}>
+                →
+              </Button>
+            </div>
           </div>
         )}
       </footer>
-    </>
+    </main>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<Loader />}>
+      <Content />
+    </Suspense>
   );
 }
