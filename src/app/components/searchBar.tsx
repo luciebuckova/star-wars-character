@@ -7,7 +7,6 @@ export default function SearchBar({ placeholder }: { placeholder: string }) {
   const { replace } = useRouter();
 
   const handleSearch = useDebouncedCallback((term) => {
-    console.log(`Searching... ${term}`);
     const params = new URLSearchParams(searchParams);
     params.set("page", "1");
     if (term) {
@@ -24,10 +23,10 @@ export default function SearchBar({ placeholder }: { placeholder: string }) {
       name="searchbar"
       placeholder={placeholder}
       onChange={(e) => {
-        handleSearch(e.target.value);
+        handleSearch(e.target.value.trim());
       }}
       defaultValue={searchParams.get("query")?.toString()}
-      className="mb-8 w-96 rounded-xl border border-lime-400 bg-transparent px-2 py-1 text-sm placeholder:text-slate-400 focus:outline-none focus:ring focus:ring-lime-300 active:outline-none active:ring active:ring-lime-300"
+      className="mb-8 w-full rounded-xl border border-lime-400 bg-transparent px-2 py-1 text-sm placeholder:text-slate-400 focus:outline-none focus:ring focus:ring-lime-300 active:outline-none active:ring active:ring-lime-300 sm:w-96"
     />
   );
 }
